@@ -1,12 +1,21 @@
 # Spark on Kubernetes
 
+## TODO / Questions
 
-## TODO
-
-- Use Docker image to run spark script directly (no Kubernetes)
-- Add volume to Docker container to access resources
-- Run image with AWS libraries on EKS
+- Get AWS credentials from Kubernetes Secrets Manager
+    - Create temporary AWS Credentials per model
+- Is it possible to run Spark 2.4.0 on EKS?
 - Benchmark performance on EKS vs performance on EMR
+- Run Minio on Kubernetes to host testdata
+- Host Jupyter on Kubernetes
+    - Is it possible to re-use base image
+- Is it possible to create a multistage Dockerfile for Spark?
+
+### Workflow
+
+- Use Docker image to run spark script directly (no Kubernetes, but with docker-compose)
+    - Add volume to Docker container to access resources
+- Local Kubernetes volumes - how does this work
 
 ## Versions used
 
@@ -75,7 +84,11 @@ tar -xvf spark-v2.4.0.tar.gz
 ## Starting PySpark shell
 
 ```
-./pyspark --master k8s://$(minikube ip):8443 --conf spark.kubernetes.container.image=spark-py:spark-docker --conf spark.executor.instances=1
+./pyspark --master k8s://$(minikube ip):8443 \
+    --conf spark.kubernetes.container.image=jepmam/spark-kubernetes-py-base:latest \
+    --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
+    --conf spark.kubernetes.namespace=spark-ns \
+    --conf spark.executor.instances=1
 ```
 
 ## Spark-Submit + Python application
@@ -84,14 +97,13 @@ tar -xvf spark-v2.4.0.tar.gz
 ./spark-submit \
   --deploy-mode cluster \
   --master k8s://$(minikube ip):8443 \
-  --conf spark.kubernetes.container.image=demo-model-s3:latest \
+  --conf spark.kubernetes.container.image=demo-model-pi:latest \
   --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
   --conf spark.kubernetes.namespace=spark-ns \
-  --conf spark.hadoop.fs.s3a.aws.credentials.provider="org.apache.hadoop.fs.s3a.AnonymousAWSCredentialsProvider" \
   local:///opt/spark/work-dir/main.py
 ```
 
-## Spark Submit + Python application + S3
+## Spark Submit + Python application + S3 (AnonymousAWSCredentialsProvider)
 
 ```
 ./spark-submit \
@@ -103,6 +115,47 @@ tar -xvf spark-v2.4.0.tar.gz
   --conf spark.kubernetes.namespace=spark-ns \
   --conf spark.executor.instances=1 \
   --conf spark.hadoop.fs.s3a.aws.credentials.provider=org.apache.hadoop.fs.s3a.AnonymousAWSCredentialsProvider \
+  local:///opt/spark/work-dir/main.py
+```
+
+## Using secrets
+
+### Create secrets
+
+We can create a secret via a `yaml` file or directly via the CLI. The sample inside `kube-conf/` has `admin` as a value. In the `demo-read-secret` Dockerimage we will read this value from the Secret Volume. As you will notice you do not have to `base64 --decode` this value, Kubernetes will do this for you.
+
+```
+kubectl create -f kube-conf/demo-secret.yaml
+```
+
+### Attach secret to Spark application
+
+> Source: https://github.com/apache/spark/blob/master/docs/running-on-kubernetes.md
+
+## PySpark shell with secrets
+
+```
+./pyspark --master k8s://$(minikube ip):8443 \
+    --conf spark.kubernetes.container.image=jepmam/spark-kubernetes-py-base:latest \
+    --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
+    --conf spark.kubernetes.namespace=spark-ns \
+    --conf spark.kubernetes.executor.secrets.demosecret=/etc/secrets \
+    --conf spark.executor.instances=1
+```
+
+### Spark Submit + Python application + S3 (Using Secrets manager)
+
+```
+./spark-submit \
+  --verbose \
+  --deploy-mode cluster \
+  --master k8s://$(minikube ip):8443 \
+  --conf spark.kubernetes.container.image=demo-read-secret:latest \
+  --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
+  --conf spark.kubernetes.namespace=spark-ns \
+  --conf spark.executor.instances=1 \
+  --conf spark.kubernetes.driver.secrets.demosecret=/etc/secrets \
+  --conf spark.kubernetes.executor.secrets.demosecret=/etc/secrets \
   local:///opt/spark/work-dir/main.py
 ```
 
