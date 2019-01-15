@@ -97,7 +97,7 @@ tar -xvf spark-v2.4.0.tar.gz
 ./spark-submit \
   --deploy-mode cluster \
   --master k8s://$(minikube ip):8443 \
-  --conf spark.kubernetes.container.image=demo-model-pi:latest \
+  --conf spark.kubernetes.container.image=spark-application-pi:latest \
   --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
   --conf spark.kubernetes.namespace=spark-ns \
   local:///opt/spark/work-dir/main.py
@@ -110,7 +110,7 @@ tar -xvf spark-v2.4.0.tar.gz
   --verbose \
   --deploy-mode cluster \
   --master k8s://$(minikube ip):8443 \
-  --conf spark.kubernetes.container.image=demo-model-s3:latest \
+  --conf spark.kubernetes.container.image=spark-application-s3:latest \
   --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
   --conf spark.kubernetes.namespace=spark-ns \
   --conf spark.executor.instances=1 \
@@ -150,7 +150,7 @@ kubectl create -f kube-conf/demo-secret.yaml
   --verbose \
   --deploy-mode cluster \
   --master k8s://$(minikube ip):8443 \
-  --conf spark.kubernetes.container.image=demo-read-secret:latest \
+  --conf spark.kubernetes.container.image=spark-application-secret-read:latest \
   --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
   --conf spark.kubernetes.namespace=spark-ns \
   --conf spark.executor.instances=1 \
@@ -166,7 +166,7 @@ kubectl create -f kube-conf/demo-secret.yaml
   --verbose \
   --deploy-mode cluster \
   --master k8s://$(minikube ip):8443 \
-  --conf spark.kubernetes.container.image=demo-model-s3:latest \
+  --conf spark.kubernetes.container.image=spark-application-s3:latest \
   --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
   --conf spark.kubernetes.namespace=spark-ns \
   --conf spark.executor.instances=1 \
@@ -187,13 +187,12 @@ kubectl create -f kube-conf/demo-secret.yaml
 
 - You can access S3 via the AWS-SDK in combination with AWS credentials.
 - Credentials can be provided via Kubernetes Secrets Manager
-- **TODO:** Check if it is possible
 
-## Local workflow
+## Development workflow
 
-- Builing docker image
-- Using testdata
--
+- Run Jupyter locally or in the cloud
+- Builing docker image with the spark-application inside
+- Use generated testdata via Minio (Local S3)
 
 ## Performance AWS KMS
 
