@@ -68,7 +68,7 @@ This service account will be used by the Spark driver pod.
 # Add the service account
 kubectl create serviceaccount spark-sa --namespace=spark-ns
 # Add the "edit" cluster role to the spark-sa service account
-kubectl create rolebinding spark-rb --clusterrole=edit --serviceaccount=spark-ns:spark-sa
+kubectl create rolebinding spark-rb --clusterrole=edit --serviceaccount=spark-ns:spark-sa --namespace=spark-ns
 ```
 
 ## Building Spark
