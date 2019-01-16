@@ -36,9 +36,9 @@
 - Currently Spark on YARN + pyspark does not support driver-mode cluster; which means that the driver is always in between.
 - You need to compile Spark 2.4.0 to use `pyspark` with the driver inside the Kubernetes cluster
 - To use Python3 with pyspark, set `export PYSPARK_PYTHON=python3`
-- You need to compile Spark together with Hadoop libraries - of the samen version that is being used inside your cluster.
-    - Hadoop-AWS also need to match a specific version of AWS_JAVA_SDK
-    - Version 2.7.3 (widely used within AWS) contains a S3 AnonymousAWSCredentialsProvider bug
+- You need to compile Spark together with Hadoop libraries - of the samenversion that is being used inside your cluster.
+    - Hadoop-AWS also needs to match a specific version of AWS_JAVA_SDK
+    - Version 2.7.3 (widely used within AWS) contains an S3 AnonymousAWSCredentialsProvider bug
 
 ## Starting cluster
 
@@ -49,27 +49,29 @@ minikube start
 eval $(minikube docker-env)
 ```
 
-## Create Spark Kubernetes config
+## Kubernetes config
 
 ### Namespace
-
+We'll use a custom namespace called `spark-ns` for running our Spark applications:
 ```
+# Directly using the command-line
 kubectl create namespace spark-ns
-```
-
-```
+# Or using a predefined JSON config
 kubectl create -f kube-conf/spark-namespace.json
 ```
 
 ### Service Account
-
+We'll use a custom service account called `spark-sa` which gets permissions to create/manage pods and services within the `spark-ns` namespace.
+This service account will be used by the Spark driver pod.
 ```
-kubectl create serviceaccount spark --namespace=spark-ns
-kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=spark-ns:spark --namespace=spark-ns
+# Directly using the command-line
+# Add the service account
+kubectl create serviceaccount spark-sa --namespace=spark-ns
+# Add the "edit" cluster role to the spark-sa service account
+kubectl create rolebinding spark-rb --clusterrole=edit --serviceaccount=spark-ns:spark-sa
 ```
 
 ## Building Spark
-
 It is important that we build Spark with the proper version of Hadoop. By default this will be version `2.7.3`, as this contains some bugs and is nearly 5 years old already, we want to use a more recent version. Dependencies can be found [here](https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-project/2.8.5)
 
 ```
@@ -81,39 +83,43 @@ tar -xvf spark-v2.4.0.tar.gz
 
 > There are some profiles defined for specific hadoop versions, these do not match with our requirement 2.8.5. If you do want to use 3.1 or 2.7, you could use the flag `-Phadoop-2.7`
 
-## Starting PySpark shell
+## PySpark shell
 
 ```
-./pyspark --master k8s://$(minikube ip):8443 \
-    --conf spark.kubernetes.container.image=jepmam/spark-kubernetes-py-base:latest \
-    --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
+docker build -t spark-kubernetes-py-base docker-images/spark-kubernetes-py-base
+./pyspark \
+    --master k8s://$(minikube ip):8443 \
+    --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark-sa \
     --conf spark.kubernetes.namespace=spark-ns \
-    --conf spark.executor.instances=1
+    --conf spark.executor.instances=1 \
+    --conf spark.kubernetes.container.image=spark-kubernetes-py-base:latest
 ```
 
-## Spark-Submit + Python application
+## Spark-submit + Python application
 
 ```
+docker build -t spark-application-pi docker-images/spark-application-pi
 ./spark-submit \
   --deploy-mode cluster \
   --master k8s://$(minikube ip):8443 \
-  --conf spark.kubernetes.container.image=spark-application-pi:latest \
-  --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
+  --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark-sa \
   --conf spark.kubernetes.namespace=spark-ns \
+  --conf spark.executor.instances=1 \
+  --conf spark.kubernetes.container.image=spark-application-pi:latest \
   local:///opt/spark/work-dir/main.py
 ```
 
-## Spark Submit + Python application + S3 (AnonymousAWSCredentialsProvider)
+## Spark submit + Python application + S3 (AnonymousAWSCredentialsProvider)
 
 ```
+docker build -t spark-application-s3 docker-images/spark-application-s3
 ./spark-submit \
-  --verbose \
   --deploy-mode cluster \
   --master k8s://$(minikube ip):8443 \
-  --conf spark.kubernetes.container.image=spark-application-s3:latest \
-  --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
+  --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark-sa \
   --conf spark.kubernetes.namespace=spark-ns \
   --conf spark.executor.instances=1 \
+  --conf spark.kubernetes.container.image=spark-application-s3:latest \
   --conf spark.hadoop.fs.s3a.aws.credentials.provider=org.apache.hadoop.fs.s3a.AnonymousAWSCredentialsProvider \
   local:///opt/spark/work-dir/main.py
 ```
@@ -121,39 +127,37 @@ tar -xvf spark-v2.4.0.tar.gz
 ## Using secrets
 
 ### Create secrets
-
-We can create a secret via a `yaml` file or directly via the CLI. The sample inside `kube-conf/` has `admin` as a value. In the `demo-read-secret` Dockerimage we will read this value from the Secret Volume. As you will notice you do not have to `base64 --decode` this value, Kubernetes will do this for you.
+We can create a secret via a `yaml` file or directly via the CLI. The sample inside `kube-conf/` has `admin` as a value. In the `spark-application-secret-read` Docker image we will read this value from the Secret Volume. As you will notice you do not have to `base64 --decode` this value, Kubernetes will do this for you.
 
 ```
 kubectl create -f kube-conf/demo-secret.yaml
 ```
 
 ### Attach secret to Spark application
-
 > Source: https://github.com/apache/spark/blob/master/docs/running-on-kubernetes.md
 
-## PySpark shell with secrets
+#### PySpark shell with secrets
 
 ```
 ./pyspark --master k8s://$(minikube ip):8443 \
-    --conf spark.kubernetes.container.image=jepmam/spark-kubernetes-py-base:latest \
-    --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
+    --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark-sa \
     --conf spark.kubernetes.namespace=spark-ns \
     --conf spark.kubernetes.executor.secrets.demosecret=/etc/secrets \
-    --conf spark.executor.instances=1
+    --conf spark.executor.instances=1 \
+    --conf spark.kubernetes.container.image=spark-kubernetes-py-base:latest
 ```
 
-### Spark Submit + Python application + S3 (Using Secrets manager)
+#### Spark Submit + Python application + S3 (Using Secrets manager)
 
 ```
+docker build -t spark-application-secret-read docker-images/spark-application-secret-read
 ./spark-submit \
-  --verbose \
   --deploy-mode cluster \
   --master k8s://$(minikube ip):8443 \
-  --conf spark.kubernetes.container.image=spark-application-secret-read:latest \
-  --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
+  --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark-sa \
   --conf spark.kubernetes.namespace=spark-ns \
   --conf spark.executor.instances=1 \
+  --conf spark.kubernetes.container.image=spark-application-secret-read:latest \
   --conf spark.kubernetes.driver.secrets.demosecret=/etc/secrets \
   --conf spark.kubernetes.executor.secrets.demosecret=/etc/secrets \
   local:///opt/spark/work-dir/main.py
@@ -163,13 +167,12 @@ kubectl create -f kube-conf/demo-secret.yaml
 
 ```
 ./spark-submit \
-  --verbose \
   --deploy-mode cluster \
   --master k8s://$(minikube ip):8443 \
-  --conf spark.kubernetes.container.image=spark-application-s3:latest \
-  --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
+  --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark-sa \
   --conf spark.kubernetes.namespace=spark-ns \
   --conf spark.executor.instances=1 \
+  --conf spark.kubernetes.container.image=spark-application-s3:latest \
   --conf spark.hadoop.fs.s3a.endpoint=http://192.168.205.201:9000 \
   --conf spark.hadoop.fs.s3a.secret.key=minio123 \
   --conf spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem \
