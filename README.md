@@ -4,7 +4,7 @@
 
 - Get AWS credentials from Kubernetes Secrets Manager
     - Create temporary AWS Credentials per model
-- Is it possible to run Spark 2.4.0 on EKS?
+    - Try out https://github.com/uswitch/kiam
 - Benchmark performance on EKS vs performance on EMR
     - Use public dataset
     - Test with and without caching
