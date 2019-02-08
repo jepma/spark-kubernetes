@@ -9,7 +9,7 @@
     - Use public dataset, files > 1gb
     - Test with and without caching
 - How is the integration with Glue / Data-catalogs
-    - hive-site.xml / Glue / Spark?
+    - hive-site.xml / glue / spark
 - Run Minio on Kubernetes to host testdata
 - Host Jupyter on Kubernetes
     - Is it possible to re-use base image
@@ -212,65 +212,6 @@ docker build -t spark-application-secret-read docker-images/spark-application-se
   --conf spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem \
   local:///opt/spark/work-dir/main.py
 ```
-
-## Cloud Providers
-
-## EKS
-
-### Create the cluster
-
-We created the cluster using the example from [here](https://github.com/terraform-aws-modules/terraform-aws-eks/tree/master/examples/eks_test_fixture).
-
-### Add user
-
-By default, the user that has created the cluster will have access to EKS. But if you have more administrators for your cluster, you can update the ConfigMap.
-
-### Config Kubectl
-
-### Run PySpark
-
-### Google Cloud Engine
-
-### Environment setup
-
-Cluster name is `spark-on-k8s`
-
-```sh
-export PROJECT=$(gcloud info --format='value(config.project)')
-export KUBERNETES_CLUSTER_NAME=spark-on-k8s
-export KUBERNETES_MASTER_IP=$(gcloud container clusters list --filter name=$KUBERNETES_CLUSTER_NAME --format='value(MASTER_IP)')
-```
-### Setup properties
-
-```sh
-cat > properties << EOF
-spark.app.name  spark-on-k8s
-spark.kubernetes.namespace=spark-ns
-spark.kubernetes.driverEnv.GCS_PROJECT_ID $PROJECT
-spark.kubernetes.driverEnv.GOOGLE_APPLICATION_CREDENTIALS /mnt/secrets/spark-sa.json
-spark.kubernetes.container.image=jepmam/spark-kubernetes-py-base:latest
-spark.kubernetes.driver.secrets.spark-sa  /mnt/secrets
-spark.kubernetes.executor.secrets.spark-sa /mnt/secrets
-spark.executor.instances=1
-spark.executorEnv.GCS_PROJECT_ID    $PROJECT
-spark.executorEnv.GOOGLE_APPLICATION_CREDENTIALS /mnt/secrets/spark-sa.json
-spark.hadoop.google.cloud.auth.service.account.enable true
-spark.hadoop.google.cloud.auth.service.account.json.keyfile /mnt/secrets/spark-sa.json
-spark.hadoop.fs.gs.project.id $PROJECT
-EOF
-```
-
-#### PySpark shell
-
-```sh
-pyspark \
-    --master k8s://https://$KUBERNETES_MASTER_IP:443 \
-    --properties-file properties
-```
-
-### Resources
-
-* https://cloud.google.com/solutions/spark-on-kubernetes-engine
 
 ## Errors we ran into
 
