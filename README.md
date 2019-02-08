@@ -6,15 +6,17 @@
     - Create temporary AWS Credentials per model
     - Try out https://github.com/uswitch/kiam
 - Benchmark performance on EKS vs performance on EMR
-    - Use public dataset
+    - Use public dataset, files > 1gb
     - Test with and without caching
+- How is the integration with Glue / Data-catalogs
+    - hive-site.xml / Glue / Spark?
 - Run Minio on Kubernetes to host testdata
 - Host Jupyter on Kubernetes
     - Is it possible to re-use base image
 - Is it possible to create a multistage Dockerfile for Spark?
 - Create map / workflow -> How does Spark work on Kubernetes
 - Best practices -> Kubernetes + Spark
-- EKS -> Berekenen wat de kosten zijn t.o.v. EMR
+- Calculate costs -> comparison with EMR?
     - HorizontalPodAutoscaler
     - Autoscaler - AWS (NodeAutoscaler -> Kubernetes)
         - Custom Metrics
@@ -48,6 +50,8 @@
 - You need to compile Spark together with Hadoop libraries - of the samenversion that is being used inside your cluster.
     - Hadoop-AWS also needs to match a specific version of AWS_JAVA_SDK
     - Version 2.7.3 (widely used within AWS) contains an S3 AnonymousAWSCredentialsProvider bug
+- EKS clusters get the user that created the cluster, hardwired in it's configuration.
+    - If you want to add other users, update the ConfigMap accordingly
 
 ## Starting cluster
 
@@ -209,7 +213,23 @@ docker build -t spark-application-secret-read docker-images/spark-application-se
   local:///opt/spark/work-dir/main.py
 ```
 
-## Google Cloud Engine
+## Cloud Providers
+
+## EKS
+
+### Create the cluster
+
+We created the cluster using the example from [here](https://github.com/terraform-aws-modules/terraform-aws-eks/tree/master/examples/eks_test_fixture).
+
+### Add user
+
+By default, the user that has created the cluster will have access to EKS. But if you have more administrators for your cluster, you can update the ConfigMap.
+
+### Config Kubectl
+
+### Run PySpark
+
+### Google Cloud Engine
 
 ### Environment setup
 
