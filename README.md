@@ -211,16 +211,16 @@ docker build -t spark-application-secret-read docker-images/spark-application-se
 
 ## Google Cloud Engine
 
+### Environment setup
+
 Cluster name is `spark-on-k8s`
 
 ```sh
 export PROJECT=$(gcloud info --format='value(config.project)')
-
 export KUBERNETES_CLUSTER_NAME=spark-on-k8s
-export KUBERNETES_CLUSTER_NAME=standard-cluster-1
 export KUBERNETES_MASTER_IP=$(gcloud container clusters list --filter name=$KUBERNETES_CLUSTER_NAME --format='value(MASTER_IP)')
 ```
-Setup properties
+### Setup properties
 
 ```sh
 cat > properties << EOF
@@ -239,6 +239,8 @@ spark.hadoop.google.cloud.auth.service.account.json.keyfile /mnt/secrets/spark-s
 spark.hadoop.fs.gs.project.id $PROJECT
 EOF
 ```
+
+#### PySpark shell
 
 ```sh
 pyspark \
