@@ -74,19 +74,31 @@ module "vpc" {
   single_nat_gateway = true
 }
 
+data "aws_caller_identity" "current" {}
+
 module "eks" {
-  source       = "terraform-aws-modules/eks/aws"
-  version      = "2.3.1"
-  cluster_name = "spark-eks"
-  subnets      = ["${module.vpc.private_subnets}"]
-  vpc_id       = "${module.vpc.vpc_id}"
+  source                = "terraform-aws-modules/eks/aws"
+  version               = "2.3.1"
+  cluster_name          = "spark-eks"
+  subnets               = ["${module.vpc.private_subnets}"]
+  vpc_id                = "${module.vpc.vpc_id}"
+  manage_aws_auth       = false
+  write_aws_auth_config = false
 
   worker_groups = [
     {
-      instance_type = "m4.large"
+      instance_type        = "m4.large"
       asg_desired_capacity = 2
-      asg_min_size = 2
-      asg_max_size  = 2
+      asg_min_size         = 2
+      asg_max_size         = 2
     },
   ]
+}
+
+module "node-config" {
+  source = "./node-config"
+
+  worker_role_arn = ["${list(module.eks.worker_iam_role_arn)}"]
+  cluster_name    = "${module.eks.cluster_id}"
+  account_id      = "${data.aws_caller_identity.current.account_id}"
 }
