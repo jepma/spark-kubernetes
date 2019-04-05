@@ -74,6 +74,8 @@ module "vpc" {
   single_nat_gateway = true
 }
 
+data "aws_caller_identity" "current" {}
+
 module "eks" {
   source       = "terraform-aws-modules/eks/aws"
   version      = "2.2.0"
@@ -87,6 +89,20 @@ module "eks" {
       asg_desired_capacity = 2
       asg_min_size = 2
       asg_max_size  = 2
+    },
+  ]
+
+  map_users_count = 2
+  map_users = [
+    {
+      user_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/mjepma"
+      username = "mjepma"
+      group    = "system:masters"
+    },
+    {
+      user_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/svanderveldt"
+      username = "svanderveldt"
+      group    = "system:masters"
     },
   ]
 }
