@@ -1,0 +1,16 @@
+{
+    "CN": "Xebia CA",
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "C": "NL",
+            "L": "Hilversum",
+            "O": "Xebia",
+            "OU": "WWW",
+            "ST": "Hilversum"
+        }
+    ]
+}

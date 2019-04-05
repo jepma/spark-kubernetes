@@ -10,9 +10,12 @@ See https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html for more
 There are variables for adding these in the terraform-aws-eks module.
 
 # Create kubectl config
+
+Run this from the root of this repo
+
 ```
 $ aws eks --region eu-west-1 update-kubeconfig --name spark-eks --kubeconfig kubeconfig
-$ export KUBECONFIG=kubeconfig
+$ export KUBECONFIG=$PWD/kubeconfig
 # Check if it works
 $ kubectl get nodes
 ```
