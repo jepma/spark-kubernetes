@@ -14,6 +14,8 @@ provider "random" {
 
 data "aws_availability_zones" "available" {}
 
+# Default iam_role_id for worker-groups
+
 resource "aws_security_group" "worker_group_mgmt_one" {
   name_prefix = "worker_group_mgmt_one"
   description = "SG to be applied to all *nix machines"
@@ -77,6 +79,7 @@ module "vpc" {
 data "aws_caller_identity" "current" {}
 
 module "eks" {
+<<<<<<< HEAD
   source                = "terraform-aws-modules/eks/aws"
   version               = "2.3.1"
   cluster_name          = "spark-eks"
@@ -85,21 +88,55 @@ module "eks" {
   manage_aws_auth       = false
   write_aws_auth_config = false
   write_kubeconfig      = false
+=======
+  source = "terraform-aws-modules/eks/aws"
+
+  #https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/4.0.2
+  version                     = "4.0.2"
+  cluster_name                = "spark-eks"
+  subnets                     = ["${module.vpc.private_subnets}"]
+  vpc_id                      = "${module.vpc.vpc_id}"
+  manage_aws_auth             = false
+  write_aws_auth_config       = false
+  manage_worker_iam_resources = false
+>>>>>>> Added KIAM + demo app
 
   worker_groups = [
     {
-      instance_type        = "m4.large"
-      asg_desired_capacity = 2
-      asg_min_size         = 2
-      asg_max_size         = 2
+      name                      = "workload"
+      instance_type             = "m4.large"
+      kubelet_extra_args        = "--node-labels 'kubernetes.io/type=spark'"
+      asg_desired_capacity      = 2
+      asg_min_size              = 2
+      asg_max_size              = 2
+      iam_instance_profile_name = "${aws_iam_instance_profile.workers.id}"
+      key_name                  = "maintenance-key"
+
+      tags = {
+        type = "spark"
+      }
+    },
+    {
+      name                      = "kiam"
+      instance_type             = "m4.large"
+      kubelet_extra_args        = "--node-labels 'kubernetes.io/type=kiam'"
+      asg_desired_capacity      = 1
+      iam_instance_profile_name = "${aws_iam_instance_profile.kiam.id}"
+      key_name                  = "maintenance-key"
+
+      tags = {
+        type = "kiam"
+      }
     },
   ]
+
+  worker_group_count = "2"
 }
 
 module "node-config" {
   source = "./node-config"
 
-  worker_role_arn = ["${list(module.eks.worker_iam_role_arn)}"]
+  worker_role_arn = ["${aws_iam_role.workers.arn}", "${aws_iam_role.kiam.arn}"]
   cluster_name    = "${module.eks.cluster_id}"
   account_id      = "${data.aws_caller_identity.current.account_id}"
 }

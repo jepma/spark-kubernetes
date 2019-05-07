@@ -1,3 +1,20 @@
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: kiam-server-certificate
+  namespace: kube-system
+spec:
+  secretName: kiam-server-certificate-secret
+  issuerRef:
+    name: self-signed-certificate-issuer
+    kind: Issuer
+  commonName: kiam-server
+  dnsNames:
+    - kiam-server
+    - localhost
+  ipAddresses:
+    - 127.0.0.1
+  renewBefore: 360h # 15d
 ---
 apiVersion: extensions/v1beta1
 kind: DaemonSet
@@ -16,13 +33,17 @@ spec:
     spec:
       serviceAccountName: kiam-server
       nodeSelector:
-        kubernetes.io/role: master
+        kubernetes.io/type: kiam
+      # kops master nodes requires this tolerations
+      # tolerations:
+      # - key: "node-role.kubernetes.io/master"
+      #   effect: "NoSchedule"
+      #   operator: "Exists"
       volumes:
         - name: ssl-certs
           hostPath:
             # for AWS linux or RHEL distros
-            # path: /etc/pki/ca-trust/extracted/pem/
-            path: /usr/share/ca-certificates
+            path: /etc/pki/ca-trust/extracted/pem/
         - name: tls
           secret:
             secretName: kiam-server-tls
@@ -35,12 +56,13 @@ spec:
           args:
             - server
             - --json-log
-            - --level=warn
+            - --level=info
             - --bind=0.0.0.0:443
-            - --cert=/etc/kiam/tls/server.pem
-            - --key=/etc/kiam/tls/server-key.pem
-            - --ca=/etc/kiam/tls/ca.pem
+            - --cert=/etc/kiam/tls/tls.crt
+            - --key=/etc/kiam/tls/tls.key
+            - --ca=/etc/kiam/tls/ca.crt
             - --role-base-arn-autodetect
+            - --assume-role-arn=arn:aws:iam::303893649546:role/kiam_server
             - --sync=1m
             - --prometheus-listen-addr=0.0.0.0:9620
             - --prometheus-sync-interval=5s
@@ -54,9 +76,9 @@ spec:
               command:
               - /kiam
               - health
-              - --cert=/etc/kiam/tls/server.pem
-              - --key=/etc/kiam/tls/server-key.pem
-              - --ca=/etc/kiam/tls/ca.pem
+              - --cert=/etc/kiam/tls/tls.crt
+              - --key=/etc/kiam/tls/tls.key
+              - --ca=/etc/kiam/tls/ca.crt
               - --server-address=127.0.0.1:443
               - --gateway-timeout-creation=1s
               - --timeout=5s
@@ -68,9 +90,9 @@ spec:
               command:
               - /kiam
               - health
-              - --cert=/etc/kiam/tls/server.pem
-              - --key=/etc/kiam/tls/server-key.pem
-              - --ca=/etc/kiam/tls/ca.pem
+              - --cert=/etc/kiam/tls/tls.crt
+              - --key=/etc/kiam/tls/tls.key
+              - --ca=/etc/kiam/tls/ca.crt
               - --server-address=127.0.0.1:443
               - --gateway-timeout-creation=1s
               - --timeout=5s

@@ -55,3 +55,7 @@ spark-submit \
   --conf spark.kubernetes.container.image=jepmam/spark-application-pi:latest \
   local:///opt/spark/work-dir/main.py
 ```
+
+# Adding a worker group
+
+It is important that when you add a worker group, you add the ARN of the instance-profile to the node-config module as well. This will add the ARN to the AWS Auth Config Map.
