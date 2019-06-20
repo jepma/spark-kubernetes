@@ -2,7 +2,13 @@
 https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html
 
 # Create EKS cluster
-Apply the Terraform plan in `./ecs`.
+Apply the Terraform plan in the `eks` directory.
+```bash
+cd eks
+terraform init
+terraform apply
+```
+
 It uses the [terraform-aws-eks module](https://github.com/terraform-aws-modules/terraform-aws-eks) to create a functioning EKS cluster.
 
 Note: Allowing additional users, roles or accounts can be done via the `aws-auth` configmap.
