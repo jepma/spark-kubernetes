@@ -84,6 +84,7 @@ module "eks" {
   vpc_id                = "${module.vpc.vpc_id}"
   manage_aws_auth       = false
   write_aws_auth_config = false
+  write_kubeconfig      = false
 
   worker_groups = [
     {
