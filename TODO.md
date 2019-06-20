@@ -1,5 +1,8 @@
 ## TODO / Questions
 
+- How to give EKS cluster permissions to a group of people?
+  Since only roles are supported does this only work when assuming roles? Not when a role has been added to an IAM group?
+  See https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
 - Get AWS credentials from Kubernetes Secrets Manager
     - Create temporary AWS Credentials per model
     - Try out https://github.com/uswitch/kiam
