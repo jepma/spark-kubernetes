@@ -1,5 +1,11 @@
-# Install aws-iam-authenticator
-https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html
+# EKS cluster for running Spark applications
+
+# Prerequisites
+- [Terraform](https://github.com/hashicorp/terraform) 0.11.14
+- [awscli](https://pypi.org/project/awscli/) >= 1.16.156
+- [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl)
+
+Make sure the access to your AWS account is setup (i.e. `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are set).
 
 # Create EKS cluster
 Apply the Terraform plan in the `eks` directory.
@@ -19,11 +25,11 @@ There are variables for adding these in the terraform-aws-eks module.
 
 Run this from the root of this repo
 
-```
-$ aws eks --region eu-west-1 update-kubeconfig --name spark-eks --kubeconfig kubeconfig
-$ export KUBECONFIG=$PWD/kubeconfig
+```bash
+aws eks --region eu-west-1 update-kubeconfig --name spark-eks --kubeconfig kubeconfig
+export KUBECONFIG=$PWD/kubeconfig
 # Check if it works
-$ kubectl get nodes
+kubectl get nodes
 ```
 
 # Run the Kubernetes Dashboard
@@ -31,7 +37,7 @@ To be able to get a graphical overview of what's happening we'll deploy the Kube
 https://docs.aws.amazon.com/eks/latest/userguide/dashboard-tutorial.html
 
 # Submitting a spark application
-```
+```bash
 # Create the spark-ns namespace
 kubectl create namespace spark-ns
 # Create the spark-sa serviceaccount
