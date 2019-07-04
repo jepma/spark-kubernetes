@@ -79,16 +79,6 @@ module "vpc" {
 data "aws_caller_identity" "current" {}
 
 module "eks" {
-<<<<<<< HEAD
-  source                = "terraform-aws-modules/eks/aws"
-  version               = "2.3.1"
-  cluster_name          = "spark-eks"
-  subnets               = ["${module.vpc.private_subnets}"]
-  vpc_id                = "${module.vpc.vpc_id}"
-  manage_aws_auth       = false
-  write_aws_auth_config = false
-  write_kubeconfig      = false
-=======
   source = "terraform-aws-modules/eks/aws"
 
   #https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/4.0.2
@@ -99,15 +89,14 @@ module "eks" {
   manage_aws_auth             = false
   write_aws_auth_config       = false
   manage_worker_iam_resources = false
->>>>>>> Added KIAM + demo app
 
   worker_groups = [
     {
-      name                      = "workload"
+      name                      = "spark_default"
       instance_type             = "m4.large"
-      kubelet_extra_args        = "--node-labels 'kubernetes.io/type=spark'"
-      asg_desired_capacity      = 2
-      asg_min_size              = 2
+      kubelet_extra_args        = "--node-labels 'kubernetes.io/type=spark','kubernetes.io/type=spark_default'"
+      asg_desired_capacity      = 1
+      asg_min_size              = 1
       asg_max_size              = 2
       iam_instance_profile_name = "${aws_iam_instance_profile.workers.id}"
       key_name                  = "maintenance-key"
@@ -121,6 +110,8 @@ module "eks" {
       instance_type             = "m4.large"
       kubelet_extra_args        = "--node-labels 'kubernetes.io/type=kiam'"
       asg_desired_capacity      = 1
+      asg_desired_capacity      = 1
+      asg_max_size              = 1
       iam_instance_profile_name = "${aws_iam_instance_profile.kiam.id}"
       key_name                  = "maintenance-key"
 
