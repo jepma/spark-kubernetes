@@ -57,13 +57,13 @@ resource "aws_iam_role_policy_attachment" "kiam_node_autoscaling" {
 resource "aws_iam_policy" "kiam_node_autoscaling" {
   name_prefix = "eks-kiam-autoscaling-${local.cluster_name}"
   description = "EKS worker node autoscaling policy for cluster ${local.cluster_name}"
-  policy      = "${data.aws_iam_policy_document.worker_autoscaling.json}"
+  policy      = "${data.aws_iam_policy_document.workers_autoscaling.json}"
   path        = "/"
 }
 
 resource "aws_iam_role_policy" "kiam_node" {
   name = "kiam_node"
-  role = "${aws_iam_role.kiam.name}"
+  role = "${aws_iam_role.kiam_node.name}"
 
   policy = <<EOF
 {
@@ -102,7 +102,7 @@ resource "aws_iam_role" "kiam_server" {
 EOF
 }
 
-resource "aws_iam_policy" "kiam_server_policy" {
+resource "aws_iam_policy" "kiam_server" {
   name        = "kiam-server"
   description = "Policy for the Kiam Server process"
 
@@ -122,7 +122,7 @@ resource "aws_iam_policy" "kiam_server_policy" {
 EOF
 }
 
-resource "aws_iam_policy_attachment" "kiam_server_policy" {
+resource "aws_iam_policy_attachment" "kiam_server" {
   name       = "kiam_server_policy"
   roles      = ["${aws_iam_role.kiam_server.name}"]
   policy_arn = "${aws_iam_policy.kiam_server.arn}"
@@ -131,7 +131,7 @@ resource "aws_iam_policy_attachment" "kiam_server_policy" {
 resource "aws_iam_role" "workers" {
   name_prefix           = "${local.cluster_name}_worker_node"
   description           = "EKS worker node role for running pods"
-  assume_role_policy    = "${data.aws_iam_policy_document.workers_assume_role_policy.json}"
+  assume_role_policy    = "${data.aws_iam_policy_document.workers_assume_role.json}"
   permissions_boundary  = ""
   path                  = "/"
   force_detach_policies = true
@@ -159,11 +159,11 @@ resource "aws_iam_role_policy_attachment" "workers_AmazonEC2ContainerRegistryRea
 }
 
 resource "aws_iam_role_policy_attachment" "workers_autoscaling" {
-  policy_arn = "${aws_iam_policy.worker_autoscaling.arn}"
+  policy_arn = "${aws_iam_policy.workers_autoscaling.arn}"
   role       = "${aws_iam_role.workers.name}"
 }
 
-resource "aws_iam_policy" "worker_autoscaling" {
+resource "aws_iam_policy" "workers_autoscaling" {
   name_prefix = "eks-worker-autoscaling-${local.cluster_name}"
   description = "EKS worker node autoscaling policy for cluster ${local.cluster_name}"
   policy      = "${data.aws_iam_policy_document.workers_autoscaling.json}"

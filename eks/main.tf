@@ -14,8 +14,6 @@ provider "random" {
 
 data "aws_availability_zones" "available" {}
 
-# Default iam_role_id for worker-groups
-
 resource "aws_security_group" "worker_group_mgmt_one" {
   name_prefix = "worker_group_mgmt_one"
   description = "SG to be applied to all *nix machines"
@@ -127,7 +125,8 @@ module "eks" {
 module "node-config" {
   source = "./node-config"
 
-  worker_role_arn = ["${aws_iam_role.workers.arn}", "${aws_iam_role.kiam.arn}"]
+  # It is not possible to get the workers_arn from the module -- this is only possible if the module is generating them.
+  worker_role_arn = ["${aws_iam_role.workers.arn}", "${aws_iam_role.kiam_node.arn}"]
   cluster_name    = "${module.eks.cluster_id}"
   account_id      = "${data.aws_caller_identity.current.account_id}"
 }
