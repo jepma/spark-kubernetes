@@ -14,7 +14,6 @@ data "aws_iam_policy_document" "workers_assume_role" {
 }
 
 resource "aws_iam_role" "workers" {
-  # name_prefix           = "${local.cluster_name}_worker_node"
   name                  = "${local.cluster_name}_worker_node"
   description           = "EKS worker node role for running pods"
   assume_role_policy    = "${data.aws_iam_policy_document.workers_assume_role.json}"
