@@ -83,29 +83,3 @@ resource "aws_iam_policy_attachment" "kiam_server" {
   roles      = ["${aws_iam_role.kiam_server.name}"]
   policy_arn = "${aws_iam_policy.kiam_server.arn}"
 }
-
-# data "aws_eks_cluster" "this" {
-#   name = "${var.cluster_name}"
-# }
-#
-# data "aws_eks_cluster_auth" "this" {
-#   name = "${data.aws_eks_cluster.this.name}"
-# }
-#
-# provider "kubernetes" {
-#   config_path = "../kubeconfig"
-# }
-#
-# data "template_file" "ca_issuer_certs" {
-#   template = "${file("${path.module}/templates/ca-issuer-certs.yaml")}"
-# }
-#
-# resource "null_resource" "ca_issuer_certs" {
-#   triggers = {
-#     manifest_sha1 = "${sha1("${data.template_file.ca_issuer_certs.rendered}")}"
-#   }
-#
-#   provisioner "local-exec" {
-#     command = "kubectl apply -f -<<EOF\n${data.template_file.ca_issuer_certs.rendered}\nEOF"
-#   }
-# }

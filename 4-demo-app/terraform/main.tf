@@ -23,7 +23,7 @@ resource "aws_s3_bucket" "bucket" {
 resource "aws_s3_bucket_object" "demo" {
   key     = "demo.csv"
   bucket  = "${aws_s3_bucket.bucket.id}"
-  content = "blaat"
+  content = "foo"
 }
 
 data "aws_iam_role" "kiam_server" {
