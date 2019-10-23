@@ -27,7 +27,7 @@ resource "aws_s3_bucket_object" "demo" {
 }
 
 data "aws_iam_role" "kiam_server" {
-  name = "kiam_server"
+  name = "kiam-server"
 }
 
 resource "aws_iam_role" "read" {

@@ -13,4 +13,4 @@ spec:
     args: ["s3", "ls", "eks-demo-app-bucket-randomword-clown"]
   restartPolicy: OnFailure
   nodeSelector:
-    kubernetes.io/type: spark
+    kubernetes.io/type: spark_default
