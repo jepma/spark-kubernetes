@@ -24,10 +24,8 @@ There are variables for adding these in the terraform-aws-eks module.
 
 # Create kubectl config
 
-Run this from the root of this repo
-
 ```bash
-aws eks --region eu-west-1 update-kubeconfig --name spark-eks --kubeconfig kubeconfig
+aws-vault exec --no-session --assume-role-ttl=60m xebia-eks -- aws eks --region eu-west-1 update-kubeconfig --name spark-eks --kubeconfig ../kubeconfig
 export KUBECONFIG=$PWD/kubeconfig
 # Check if it works
 kubectl get nodes

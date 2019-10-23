@@ -1,7 +1,7 @@
 apiVersion: certmanager.k8s.io/v1alpha1
 kind: Issuer
 metadata:
-  name: selfsigning-issuer
+  name: self-signed-certificate-issuer
   namespace: kube-system
 spec:
   selfSigned: {}
@@ -17,7 +17,7 @@ spec:
   commonName: "ca"
   isCA: true
   issuerRef:
-    name: selfsigning-issuer
+    name: self-signed-certificate-issuer
 
 ---
 apiVersion: certmanager.k8s.io/v1alpha1
