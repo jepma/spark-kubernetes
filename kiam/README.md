@@ -4,6 +4,8 @@
 
 To encrypt traffic to- and from KIAM components, certificates needs to be managed. For this cert-manager by Jetstack is used.
 
+> We still need to manually apply the certificates because custom Kubernetes resources are not yet supported by Terraform
+
 ```
 aws-vault exec --no-session --assume-role-ttl=60m xebia-eks -- kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/v0.7.2/deploy/manifests/cert-manager.yaml --validate=false
 ```

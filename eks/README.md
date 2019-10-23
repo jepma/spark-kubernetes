@@ -4,6 +4,7 @@
 - [Terraform](https://github.com/hashicorp/terraform) 0.11.14
 - [awscli](https://pypi.org/project/awscli/) >= 1.16.156
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl)
+- [aws-iam-authenticator](https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html) ??
 
 Make sure the access to your AWS account is setup (i.e. `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are set).
 

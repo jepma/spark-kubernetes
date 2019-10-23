@@ -97,7 +97,7 @@ module "eks" {
     {
       name                      = "spark_default"
       instance_type             = "m4.large"
-      kubelet_extra_args        = "--node-labels 'kubernetes.io/type=spark,kubernetes.io/type=spark_default'"
+      kubelet_extra_args        = "--node-labels 'kubernetes.io/type=spark'"
       asg_desired_capacity      = 1
       asg_min_size              = 1
       asg_max_size              = 2

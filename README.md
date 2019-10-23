@@ -24,6 +24,7 @@
     - Version 2.7.3 (widely used within AWS) contains an S3 AnonymousAWSCredentialsProvider bug
 - EKS clusters get the user that created the cluster, hardwired in it's configuration.
     - If you want to add other users, update the ConfigMap accordingly
+- You will need the `aws-iam-authenticator` to authenticate the tunnel for kubectl.
 
 ## Starting cluster
 

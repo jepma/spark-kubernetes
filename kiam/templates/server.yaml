@@ -62,7 +62,7 @@ spec:
             - --key=/etc/kiam/tls/tls.key
             - --ca=/etc/kiam/tls/ca.crt
             - --role-base-arn-autodetect
-            - --assume-role-arn=arn:aws:iam::303893649546:role/kiam_server
+            - --assume-role-arn=arn:aws:iam::303893649546:role/kiam-server
             - --sync=1m
             - --prometheus-listen-addr=0.0.0.0:9620
             - --prometheus-sync-interval=5s
