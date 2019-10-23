@@ -12,6 +12,10 @@ provider "random" {
   version = "= 1.3.1"
 }
 
+locals {
+  cluster_name = "spark-eks"
+}
+
 data "aws_availability_zones" "available" {}
 
 resource "aws_security_group" "worker_group_mgmt_one" {
@@ -81,18 +85,19 @@ module "eks" {
 
   #https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/4.0.2
   version                     = "4.0.2"
-  cluster_name                = "spark-eks"
+  cluster_name                = "${local.cluster_name}"
   subnets                     = ["${module.vpc.private_subnets}"]
   vpc_id                      = "${module.vpc.vpc_id}"
   manage_aws_auth             = false
   write_aws_auth_config       = false
   manage_worker_iam_resources = false
+  write_kubeconfig            = false
 
   worker_groups = [
     {
       name                      = "spark_default"
       instance_type             = "m4.large"
-      kubelet_extra_args        = "--node-labels 'kubernetes.io/type=spark','kubernetes.io/type=spark_default'"
+      kubelet_extra_args        = "--node-labels 'kubernetes.io/type=spark,kubernetes.io/type=spark_default'"
       asg_desired_capacity      = 1
       asg_min_size              = 1
       asg_max_size              = 2

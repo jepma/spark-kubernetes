@@ -32,6 +32,18 @@ export KUBECONFIG=$PWD/kubeconfig
 kubectl get nodes
 ```
 
+# Cert Manager
+
+To encrypt traffic to- and from KIAM components, certificates needs to be managed. For this cert-manager by Jetstack is used.
+
+> We still need to manually apply the certificates because custom Kubernetes resources are not yet supported by Terraform
+
+```
+aws-vault exec --no-session --assume-role-ttl=60m xebia-eks -- kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/v0.7.2/deploy/manifests/cert-manager.yaml --validate=false
+```
+
+> The `--validate=false` is important for kubectl version v1.12 or below.
+
 # Run the Kubernetes Dashboard
 To be able to get a graphical overview of what's happening we'll deploy the Kubernetes Dashboard
 https://docs.aws.amazon.com/eks/latest/userguide/dashboard-tutorial.html
