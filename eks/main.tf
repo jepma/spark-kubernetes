@@ -102,7 +102,6 @@ module "eks" {
       asg_min_size              = 1
       asg_max_size              = 2
       iam_instance_profile_name = "${aws_iam_instance_profile.workers.id}"
-      key_name                  = "maintenance-key"
 
       tags = {
         type = "spark"
@@ -116,7 +115,6 @@ module "eks" {
       asg_desired_capacity      = 1
       asg_max_size              = 1
       iam_instance_profile_name = "${aws_iam_instance_profile.kiam.id}"
-      key_name                  = "maintenance-key"
 
       tags = {
         type = "kiam"
