@@ -12,6 +12,10 @@ provider "random" {
   version = "= 1.3.1"
 }
 
+locals {
+  cluster_name = "spark-eks"
+}
+
 data "aws_availability_zones" "available" {}
 
 resource "aws_security_group" "worker_group_mgmt_one" {
@@ -77,29 +81,55 @@ module "vpc" {
 data "aws_caller_identity" "current" {}
 
 module "eks" {
-  source                = "terraform-aws-modules/eks/aws"
-  version               = "2.3.1"
-  cluster_name          = "spark-eks"
-  subnets               = ["${module.vpc.private_subnets}"]
-  vpc_id                = "${module.vpc.vpc_id}"
-  manage_aws_auth       = false
-  write_aws_auth_config = false
-  write_kubeconfig      = false
+  source = "terraform-aws-modules/eks/aws"
+
+  #https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/4.0.2
+  version                     = "4.0.2"
+  cluster_name                = "${local.cluster_name}"
+  subnets                     = ["${module.vpc.private_subnets}"]
+  vpc_id                      = "${module.vpc.vpc_id}"
+  manage_aws_auth             = false
+  write_aws_auth_config       = false
+  manage_worker_iam_resources = false
+  write_kubeconfig            = false
 
   worker_groups = [
     {
-      instance_type        = "m4.large"
-      asg_desired_capacity = 2
-      asg_min_size         = 2
-      asg_max_size         = 2
+      name                      = "spark_default"
+      instance_type             = "m4.large"
+      kubelet_extra_args        = "--node-labels 'kubernetes.io/type=spark'"
+      asg_desired_capacity      = 1
+      asg_min_size              = 1
+      asg_max_size              = 2
+      iam_instance_profile_name = "${aws_iam_instance_profile.workers.id}"
+
+      tags = {
+        type = "spark"
+      }
+    },
+    {
+      name                      = "kiam"
+      instance_type             = "m4.large"
+      kubelet_extra_args        = "--node-labels 'kubernetes.io/type=kiam'"
+      asg_desired_capacity      = 1
+      asg_desired_capacity      = 1
+      asg_max_size              = 1
+      iam_instance_profile_name = "${aws_iam_instance_profile.kiam.id}"
+
+      tags = {
+        type = "kiam"
+      }
     },
   ]
+
+  worker_group_count = "2"
 }
 
 module "node-config" {
   source = "./node-config"
 
-  worker_role_arn = ["${list(module.eks.worker_iam_role_arn)}"]
+  # It is not possible to get the workers_arn from the module -- this is only possible if the module is generating them.
+  worker_role_arn = ["${aws_iam_role.workers.arn}", "${aws_iam_role.kiam_node.arn}"]
   cluster_name    = "${module.eks.cluster_id}"
   account_id      = "${data.aws_caller_identity.current.account_id}"
 }

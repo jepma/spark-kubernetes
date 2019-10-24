@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+    name: demoapp-read
+    namespace: demo-app
+    annotations:
+        iam.amazonaws.com/role: demoapp-read
+spec:
+  containers:
+  - name: command-demo-container
+    image: jepmam/aws-cli:latest
+    command: ["aws"]
+    args: ["s3", "ls", "eks-demo-app-bucket-randomword-clown"]
+  restartPolicy: OnFailure
+  nodeSelector:
+    kubernetes.io/type: spark_default

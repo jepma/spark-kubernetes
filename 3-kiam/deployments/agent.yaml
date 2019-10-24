@@ -1,3 +1,19 @@
+---
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: kiam-agent-certificate
+  namespace: kube-system
+spec:
+  secretName: kiam-agent-certificate-secret
+  issuerRef:
+    name: self-signed-certificate-issuer
+    kind: Issuer
+  commonName: kiam-agent
+  dnsNames:
+    - kiam-agent
+  renewBefore: 360h # 15d
+---
 apiVersion: extensions/v1beta1
 kind: DaemonSet
 metadata:
@@ -6,9 +22,6 @@ metadata:
 spec:
   template:
     metadata:
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "9620"
       labels:
         app: kiam
         role: agent
@@ -16,12 +29,14 @@ spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       nodeSelector:
-        kubernetes.io/role: node
+        kubernetes.io/type: spark
       volumes:
         - name: ssl-certs
           hostPath:
             # for AWS linux or RHEL distros
-            #path: /etc/pki/ca-trust/extracted/pem/
+            # path: /etc/pki/ca-trust/extracted/pem/
+            # debian or ubuntu distros
+            # path: /etc/ssl/certs
             path: /usr/share/ca-certificates
         - name: tls
           secret:
@@ -42,12 +57,13 @@ spec:
           args:
             - agent
             - --iptables
-            - --host-interface=cali+
+            - --host-interface=!eth0
             - --json-log
+            - --level=info
             - --port=8181
-            - --cert=/etc/kiam/tls/agent.pem
-            - --key=/etc/kiam/tls/agent-key.pem
-            - --ca=/etc/kiam/tls/ca.pem
+            - --cert=/etc/kiam/tls/tls.crt
+            - --key=/etc/kiam/tls/tls.key
+            - --ca=/etc/kiam/tls/ca.crt
             - --server-address=kiam-server:443
             - --prometheus-listen-addr=0.0.0.0:9620
             - --prometheus-sync-interval=5s
