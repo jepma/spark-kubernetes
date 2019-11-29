@@ -2,6 +2,7 @@
 
 ### Main questions
 
+- If KIAM is unable to locate credentials, how can we make the deployment fail
 - Calculate costs -> comparison with EMR?
 - Benchmark performance on EKS vs performance on EMR
   - Use public dataset, files > 1gb
