@@ -63,9 +63,10 @@ resource "aws_iam_policy_attachment" "kiam_server" {
 data "aws_iam_role" "server_node" {
   name = "${local.cluster_name}_kiam_node"
 }
-resource "aws_iam_role_policy" "server_node" {
-  name = "kiam-server-node"
-  role = "${data.aws_iam_role.server_node.name}"
+
+resource "aws_iam_policy" "server_node" {
+  name        = "kiam-server-node"
+  description = "Policy for the Kiam Server process"
 
   policy = <<EOF
 {
@@ -81,4 +82,10 @@ resource "aws_iam_role_policy" "server_node" {
     ]
   }
 EOF
+}
+
+resource "aws_iam_policy_attachment" "server_node" {
+  name       = "kiam-server-node"
+  roles      = ["${data.aws_iam_role.server_node.name}"]
+  policy_arn = "${aws_iam_policy.server_node.arn}"
 }
