@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: Pod
 metadata:
-    name: demoapp-read
-    namespace: demo-app
+    name: demoapp-read-s3
+    namespace: demoapp
     annotations:
         iam.amazonaws.com/role: demoapp-read
 spec:
@@ -13,4 +13,21 @@ spec:
     args: ["s3", "ls", "eks-demo-app-bucket-randomword-clown"]
   restartPolicy: OnFailure
   nodeSelector:
-    kubernetes.io/type: spark_default
+    kubernetes.io/type: spark
+---
+apiVersion: v1
+kind: Pod
+metadata:
+    name: demoapp-sts
+    namespace: demoapp
+    annotations:
+        iam.amazonaws.com/role: demoapp-read
+spec:
+  containers:
+  - name: command-demo-container
+    image: jepmam/aws-cli:latest
+    command: ["aws"]
+    args: ["sts", "get-caller-identity"]
+  restartPolicy: OnFailure
+  nodeSelector:
+    kubernetes.io/type: spark

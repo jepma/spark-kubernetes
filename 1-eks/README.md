@@ -11,7 +11,6 @@ Make sure the access to your AWS account is setup (i.e. `AWS_ACCESS_KEY_ID` and 
 # Create EKS cluster
 Apply the Terraform plan in the `eks` directory.
 ```bash
-cd eks
 terraform init
 terraform apply
 ```
@@ -25,7 +24,7 @@ There are variables for adding these in the terraform-aws-eks module.
 # Create kubectl config
 
 ```bash
-aws-vault exec --no-session --assume-role-ttl=60m xebia-eks -- aws eks --region eu-west-1 update-kubeconfig --name spark-eks --kubeconfig ../kubeconfig
+aws eks --region eu-west-1 update-kubeconfig --name spark-eks --kubeconfig ./kubeconfig
 export KUBECONFIG=$PWD/kubeconfig
 # Check if it works
 kubectl get nodes

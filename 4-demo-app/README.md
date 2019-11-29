@@ -12,5 +12,5 @@ popd
 ### APP
 
 ```
-aws-vault exec --no-session --assume-role-ttl=60m xebia-eks -- kubectl apply -f deployments/namespace.yaml -f deployments/pod.yaml
+kubectl apply -f deployments/namespace.yaml -f deployments/pod.yaml
 ```
